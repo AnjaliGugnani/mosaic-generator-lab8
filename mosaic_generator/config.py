@@ -38,6 +38,15 @@ MAX_GRID_SIZE: int = 256
 #: Set to ``None`` to disable the limit.
 MAX_IMAGE_DIM: int | None = 2048
 
+#: Tighter limit used by the web app: the free hosting tier has a small share of
+#: one CPU and little memory, so large uploads are downscaled to this first.
+APP_MAX_IMAGE_DIM: int = 1024
+
+#: Example images shown in the web app (one per scene).
+APP_EXAMPLE_FILES: tuple[str, ...] = (
+    "sunflower.jpg", "astronaut_512.png", "chelsea_cat.jpg", "coffee.jpg", "rocket.jpg",
+)
+
 # --------------------------------------------------------------------------
 # Tile parameters
 # --------------------------------------------------------------------------
