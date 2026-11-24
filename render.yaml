@@ -1,0 +1,13 @@
+# Render Blueprint: New -> Blueprint in the Render dashboard, then pick this repo.
+services:
+  - type: web
+    name: mosaic-generator-lab8
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: GRADIO_ANALYTICS_ENABLED
+        value: "False"

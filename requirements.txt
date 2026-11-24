@@ -1,0 +1,10 @@
+# Runtime (web app + package)
+gradio==6.30.0
+numpy==2.2.6
+Pillow==11.3.0
+scipy==1.15.3
+scikit-image==0.25.2
+# Notebook / benchmarks only (not needed by the deployed app)
+matplotlib==3.10.3
+pandas==2.3.1
+line_profiler==5.0.0
