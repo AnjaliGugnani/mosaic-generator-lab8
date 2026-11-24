@@ -14,7 +14,9 @@ pinned: false
 
 Rebuilds any photo out of colour tiles. This version of my Lab 1 project is about **780× faster** for a 512×512 image with a 32×32 grid (4.06 s → 5.2 ms) and is organised as a reusable Python package.
 
-**Live demo:** `<add your Hugging Face Space URL here>`
+**Live demo:** https://mosaic-generator-lab8.onrender.com/
+
+**Author:** Anjali Puri
 
 ## Installation
 
@@ -35,7 +37,8 @@ Upload an image or click an example, choose the grid size and number of tiles, a
 New compared with Lab 1:
 - a processing-time panel with a per-stage breakdown and cache statistics;
 - a choice to match cells against the measured colours of the tile photos instead of the nominal palette (visibly closer mosaics, about 20–35% lower MSE);
-- SSIM is optional, because it costs more than the mosaic itself on large images;
+- SSIM is optional (off by default), because it costs more than the mosaic itself on large images;
+- uploads larger than 1024 px are downscaled once before processing, to keep the free-tier demo responsive (the Python API's limit is 2048 px, `config.MAX_IMAGE_DIM`);
 - grid sizes from 8 to 128 and tile sets from 3 to 13.
 
 ### Python API
@@ -101,7 +104,7 @@ mosaic_generator/
 app.py                  Gradio web app
 baseline/               Lab 1 code and original tiles (benchmark baseline only)
 benchmarks/             shared harness, CLI benchmark, results JSON, figures
-examples/               sample test images: astronaut at 256/512/1024 px (benchmarks) + coffee, chelsea_cat, rocket
+examples/               sample test images: astronaut at 256/512/1024 px (benchmarks) + sunflower, coffee, chelsea_cat, rocket
 tiles/                  small tile set used by the app (192 KB)
 tests/test_mosaic.py    15 unit tests
 profiling_analysis.ipynb
@@ -120,11 +123,13 @@ profiling_analysis.ipynb
 
 1. Create a new Space with the **Gradio** SDK.
 2. Upload `app.py`, `requirements.txt`, `README.md` (the YAML header above configures the Space), `mosaic_generator/`, `tiles/` and `examples/`. Leave out `baseline/`: its 75 MB of tiles are only needed for the benchmarks.
-3. Wait for the build to finish, open the app, and click an example to check it works. Then put the URL at the top of this README.
+3. Wait for the build to finish, open the app, and click an example to check it works. 
 
 ## Sample test images
 
-The `examples/` folder contains the test images used in the benchmarks (`astronaut_256.png`, `astronaut_512.png`, `astronaut_1024.png`, the same scene at three sizes) and extra example images for the web app (`coffee.jpg`, `chelsea_cat.jpg`, `rocket.jpg`). All are public-domain samples from scikit-image.
+The `examples/` folder contains the test images used in the benchmarks (`astronaut_256.png`, `astronaut_512.png`, `astronaut_1024.png`, the same scene at three sizes) and extra example images for the web app (`sunflower.jpg`, `coffee.jpg`, `chelsea_cat.jpg`, `rocket.jpg`). The web app shows one image per scene: the sunflower (the image I used most in Lab 1), the 512 px astronaut, the cat, the coffee and the rocket.
+
+Credits: the astronaut, coffee, cat and rocket images are public-domain samples from scikit-image. `sunflower.jpg` is "Sunflower sky backdrop" by Fir0002 (Flagstaffotos), from Wikimedia Commons, used for non-commercial educational purposes under the licence given on its Commons file page; it was downscaled to 1024 px for this project.
 
 ## Notes
 

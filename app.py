@@ -50,6 +50,7 @@ def generate(image, grid_size, tile_count, match_label, with_ssim):
             grid_size=int(grid_size),
             tile_count=int(tile_count),
             match_on=MATCH_LABELS.get(match_label, config.DEFAULT_MATCH_MODE),
+            max_image_dim=config.APP_MAX_IMAGE_DIM,
         )
         result = builder.build(image)
         start = time.perf_counter()
@@ -59,6 +60,11 @@ def generate(image, grid_size, tile_count, match_label, with_ssim):
     except MosaicError as exc:
         raise gr.Error(str(exc)) from exc
 
+    in_h, in_w = image.shape[:2]
+    resized_note = (
+        f" (uploaded {in_w}×{in_h}, downscaled to fit {config.APP_MAX_IMAGE_DIM} px)"
+        if max(in_h, in_w) > config.APP_MAX_IMAGE_DIM else ""
+    )
     rows, cols = result.grid_size
     cell_h, cell_w = result.cell_size
     h, w = result.mosaic.shape[:2]
@@ -68,13 +74,14 @@ def generate(image, grid_size, tile_count, match_label, with_ssim):
     cache = TILE_MANAGER.cache_info()
     perf = (
         f"### ⏱️ Mosaic generated in **{format_seconds(result.total_time)}**\n"
-        f"Metrics: {format_seconds(metrics_time)} · {w}×{h} px · {cols}×{rows} grid "
+        f"Metrics: {format_seconds(metrics_time)} · {w}×{h} px{resized_note} · {cols}×{rows} grid "
         f"({rows * cols:,} cells of {cell_w}×{cell_h} px) · matcher: "
         f"`{builder._get_matcher().name}`\n\n"
         f"| Stage | Time |\n|---|---|\n{stage_lines}\n\n"
         f"Tiles loaded once at startup in {format_seconds(TILE_MANAGER.load_time)} · "
         f"resized-tile cache: {cache['hits']} hits / {cache['misses']} misses. "
-        f"(The Lab 1 baseline took about 4 s per mosaic.)"
+        f"(The Lab 1 baseline took about 4 s per mosaic. This demo runs on a small free "
+        f"server, so times here are slower than the benchmarks in the README.)"
     )
     return result.segmented, result.mosaic, scores["mse"], scores.get("ssim"), perf
 
@@ -85,7 +92,8 @@ def build_demo() -> gr.Blocks:
     Returns:
         gr.Blocks: The app, ready for ``.launch()``.
     """
-    examples = sorted(p for p in config.EXAMPLES_DIR.glob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg"))
+    examples = [config.EXAMPLES_DIR / name for name in config.APP_EXAMPLE_FILES
+                if (config.EXAMPLES_DIR / name).is_file()]
     with gr.Blocks(title="Image Mosaic Generator (Lab 8)") as demo:
         gr.Markdown(
             "# 🧩 Image Mosaic Generator, optimized\n"
@@ -99,7 +107,7 @@ def build_demo() -> gr.Blocks:
                 tiles = gr.Slider(3, TILE_MANAGER.count, value=min(config.DEFAULT_TILE_COUNT, TILE_MANAGER.count),
                                   step=1, label="Tile Set (number of tiles)")
                 match = gr.Radio(list(MATCH_LABELS), value="Lab 1 palette colours", label="Match cells against")
-                ssim_box = gr.Checkbox(value=True, label="Compute SSIM (slower for large images)")
+                ssim_box = gr.Checkbox(value=False, label="Compute SSIM (slow on the free server)")
                 run = gr.Button("Generate Mosaic", variant="primary")
             with gr.Column():
                 perf = gr.Markdown("Processing time will appear here.")
@@ -113,7 +121,7 @@ def build_demo() -> gr.Blocks:
         inputs = [image_in, grid, tiles, match, ssim_box]
         outputs = [seg_out, mosaic_out, mse_out, ssim_out, perf]
         if examples:
-            gr.Examples(examples=[[str(p), 32, 9, "Lab 1 palette colours", True] for p in examples],
+            gr.Examples(examples=[[str(p), 32, 9, "Lab 1 palette colours", False] for p in examples],
                         inputs=inputs, label="Example images")
         run.click(generate, inputs=inputs, outputs=outputs)
     return demo
